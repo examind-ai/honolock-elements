@@ -214,7 +214,9 @@ app.get('/courses/:courseId/users/:userId', async (req, res) => {
           </div>
         </div>
 
-        <honorlock-elements></honorlock-elements>
+        <div class="flex justify-center">
+          <honorlock-elements></honorlock-elements>
+        </div>
 
         <script>
         document.addEventListener('HonorlockElements', () => {
