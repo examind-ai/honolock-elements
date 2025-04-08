@@ -208,7 +208,7 @@ app.get('/courses/:courseId/users/:userId', async (req, res) => {
         <div class="p-8">
           <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mb-8">
             <h1 class="text-2xl font-bold mb-4">Honorlock Elements Demo</h1>
-            <p class="mb-4">The Honorlock Elements component is loaded below.</p>
+            <p class="mb-4">Make sure 3rd party cookies is enabled in your browser.</p>
             <p class="text-sm text-gray-600 mb-2">Course ID: ${courseId}</p>
             <p class="text-sm text-gray-600">User ID: ${userId}</p>
           </div>
