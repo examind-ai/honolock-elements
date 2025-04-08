@@ -188,6 +188,8 @@ app.get('/courses/:courseId/users/:userId', async (req, res) => {
     }
 
     const userTokenData = await userTokenResponse.json();
+
+    // Important: This user token is only valid once. Once used, it's burnt.
     const userAccessToken = userTokenData.data.access_token;
     
     // Render the final page with Honorlock Elements
