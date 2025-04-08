@@ -13,7 +13,7 @@ A simple Express application to interact with the Honorlock API and demonstrate 
    ```
 4. Install dependencies:
    ```
-   npm install
+   npm ci
    ```
 5. Start the application:
    ```
