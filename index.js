@@ -2,6 +2,7 @@ import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import dotenv from 'dotenv';
+import studentRouter from './routes/student.js';
 
 // Load environment variables
 dotenv.config();
@@ -20,6 +21,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, 'public')));
 
 // Routes
+app.use('/student', studentRouter);
+
 app.get('/', async (req, res) => {
   try {
     // Get access token from Honorlock API
