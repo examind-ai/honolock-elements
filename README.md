@@ -34,10 +34,19 @@ API Documentation: https://docs.honorlock.com/
 
 ## Application Flow
 
+### Instructor Flow (Default Route)
 1. The application authenticates with the Honorlock API using your client credentials
 2. You'll be presented with a list of courses to select from
 3. After selecting a course, you'll see a list of users
 4. After selecting a user, the application will initialize the Honorlock Elements component with the appropriate token and context
+
+### Student Flow (/student Route)
+1. Navigate to `http://localhost:3000/student`
+2. The application authenticates with the Honorlock API and displays a list of available exams
+3. After selecting an exam, the extension check page verifies the Honorlock browser extension
+4. Once the extension is verified, you can proceed to create a session
+5. The session setup page displays the exam launch screen and allows you to start the exam
+6. After verification, you can start the exam session
 
 ## Notes
 
