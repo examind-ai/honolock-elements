@@ -2,6 +2,9 @@
 
 A simple Express application to interact with the Honorlock API and demonstrate the usage of Honorlock Elements.
 
+Honolock Portal: https://app.honorlock.com/
+API Documentation: https://docs.honorlock.com/
+
 ## Setup
 
 1. Clone this repository
