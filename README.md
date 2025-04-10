@@ -28,6 +28,8 @@ API Documentation: https://docs.honorlock.com/
    npm run dev
    ```
 
+   <kbd>F5</kbd> to debug in VS Code or Windsurf.
+
 6. Open your browser and navigate to `http://localhost:3000`
 
 ## Application Flow
