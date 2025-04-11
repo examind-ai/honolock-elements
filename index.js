@@ -26,6 +26,7 @@ app.get('/', async (req, res) => {
     const tokenResponse = await fetch('https://app.honorlock.com/api/en/v1/token', {
       method: 'POST',
       headers: {
+        'Accept': 'application/json', // Without Accept application/json, errors from Honorlock API will return 302 redirect instead of JSON
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -45,6 +46,7 @@ app.get('/', async (req, res) => {
     const coursesResponse = await fetch('https://app.honorlock.com/api/en/v1/courses', {
       method: 'GET',
       headers: {
+        'Accept': 'application/json', // Without Accept application/json, errors from Honorlock API will return 302 redirect instead of JSON
         'Authorization': `Bearer ${accessToken}`,
       },
     });
@@ -118,6 +120,7 @@ app.get('/courses/:courseId', async (req, res) => {
     const usersResponse = await fetch('https://app.honorlock.com/api/en/v1/users', {
       method: 'GET',
       headers: {
+        'Accept': 'application/json', // Without Accept application/json, errors from Honorlock API will return 302 redirect instead of JSON
         'Authorization': `Bearer ${accessToken}`,
       },
     });
@@ -175,6 +178,7 @@ app.get('/courses/:courseId/users/:userId', async (req, res) => {
     const userTokenResponse = await fetch('https://app.honorlock.com/api/en/v1/user-tokens', {
       method: 'POST',
       headers: {
+        'Accept': 'application/json', // Without Accept application/json, errors from Honorlock API will return 302 redirect instead of JSON
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken}`,
       },
