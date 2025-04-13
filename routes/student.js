@@ -268,6 +268,12 @@ router.get('/create-session', async (req, res) => {
             </div>
             
             <button 
+              id="setupSessionButton"
+              class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-4">
+              Setup Exam Session
+            </button>
+
+            <button 
               data-hl-extension-start 
               style="display: none;" 
               class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
@@ -283,14 +289,20 @@ router.get('/create-session', async (req, res) => {
             const sessionInfo = ${JSON.stringify(sessionData.data)};
             const studentInfo = ${JSON.stringify(studentInfo)};
             
-            // Setup session
-            honorlock.setupSession({
-              session: sessionInfo,
-              app_url: window.location.origin,
-              external_exam_id: studentInfo.external_exam_id,
-              exam_taker_id: studentInfo.exam_taker_id,
-              exam_taker_name: '${studentInfo.exam_taker_first_name} ${studentInfo.exam_taker_last_name}',
-              exam_taker_attempt_id: studentInfo.exam_taker_attempt_id
+            // Setup session button click handler
+            document.getElementById('setupSessionButton').addEventListener('click', () => {
+              // Setup session
+              honorlock.setupSession({
+                session: sessionInfo,
+                app_url: window.location.origin,
+                external_exam_id: studentInfo.external_exam_id,
+                exam_taker_id: studentInfo.exam_taker_id,
+                exam_taker_name: '${studentInfo.exam_taker_first_name} ${studentInfo.exam_taker_last_name}',
+                exam_taker_attempt_id: studentInfo.exam_taker_attempt_id
+              });
+
+              // Hide setup button after it's been clicked
+              document.getElementById('setupSessionButton').style.display = 'none';
             });
             
             // Register callback for when exam can begin
