@@ -30,7 +30,10 @@ API Documentation: https://docs.honorlock.com/
 
    <kbd>F5</kbd> to debug in VS Code or Windsurf.
 
-6. Open your browser and navigate to `http://localhost:3000`
+6. Open your browser and navigate to:
+
+`http://localhost:3000` - Instructor Flow
+`http://localhost:3000/student` - Student Flow
 
 ## Application Flow
 
