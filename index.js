@@ -20,6 +20,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(join(__dirname, 'public')));
 
+// Set up EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', join(__dirname, 'views'));
+
 // Routes
 app.use('/student', studentRouter);
 
