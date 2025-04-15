@@ -61,7 +61,7 @@ router.get('/', async (req, res) => {
             ${examsData.data.map(exam => `
               <li>
                 ${exam.external_id ? 
-                  `<a href="/student/extension-check?externalExamId=${exam.external_id}&token=${encodeURIComponent(accessToken)}" 
+                  `<a href="/student/exam-setup?externalExamId=${exam.external_id}&token=${encodeURIComponent(accessToken)}" 
                      class="block p-3 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200">
                     ${exam.name}
                     <div class="text-sm text-gray-600">
@@ -106,8 +106,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Extension check route
-router.get('/extension-check', async (req, res) => {
+// Combined extension check and session creation route
+router.get('/exam-setup', async (req, res) => {
   try {
     const { externalExamId, token: accessToken } = req.query;
 
@@ -133,71 +133,6 @@ router.get('/extension-check', async (req, res) => {
     }
 
     const extensionCheckData = await extensionCheckResponse.json();
-    
-    // Render extension check page
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Honorlock Extension Check</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script type="module" src="https://unpkg.com/@honorlock/integration-sdk-js?module"></script>
-      </head>
-      <body class="bg-gray-100 p-8">
-        <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mb-8">
-          <h1 class="text-2xl font-bold mb-4">Honorlock Extension Check</h1>
-          <p class="mb-4">Please install the Honorlock extension to continue.</p>
-          
-          <div class="mb-4">
-            <iframe src="${extensionCheckData.data.iframe_src}" width="100%" height="300" frameborder="0"></iframe>
-          </div>
-          
-          <button 
-            data-hl-extension-init 
-            style="display: none;" 
-            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-            onclick="window.location.href='/student/create-session?externalExamId=${externalExamId}&token=${encodeURIComponent(accessToken)}'">
-            Continue to Exam
-          </button>
-        </div>
-        
-        <script>
-          document.addEventListener('DOMContentLoaded', async () => {
-            const honorlock = globalThis.Honorlock || window.Honorlock;
-            
-            try {
-              await honorlock.init();
-              console.log('Honorlock initialized successfully');
-            } catch (error) {
-              console.error('Error initializing Honorlock:', error);
-            }
-            
-            honorlock.onExtensionVerified(() => {
-              // Show the continue button when extension is verified
-              let continueButton = document.querySelector('[data-hl-extension-init]');
-              continueButton.style.display = 'block';
-            });
-          });
-        </script>
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).send(`Error: ${error.message}`);
-  }
-});
-
-// Create session route
-router.get('/create-session', async (req, res) => {
-  try {
-    const { externalExamId, token: accessToken } = req.query;
-
-    if (!externalExamId || !accessToken) {
-      throw new Error('Access token and external exam ID are required');
-    }
 
     // For demo purposes, we'll use hardcoded student information
     // In a real application, this would come from your authentication system
@@ -213,71 +148,86 @@ router.get('/create-session', async (req, res) => {
       // bypass_payment: true
     };
 
-    // Create session
-    const createSessionResponse = await fetch('https://app.honorlock.com/api/en/v1/exams/sessions/create', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json', // Without Accept application/json, errors from Honorlock API will return 302 redirect instead of JSON
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(studentInfo),
-    });
-
-    if (!createSessionResponse.ok) {
-      throw new Error(`Failed to create session: ${createSessionResponse.status}`);
-    }
-
-    const sessionData = await createSessionResponse.json();
-
-    // Get exam instructions
-    const instructionsResponse = await fetch(`https://app.honorlock.com/api/en/v1/exams/${externalExamId}/instructions`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json', // Without Accept application/json, errors from Honorlock API will return 302 redirect instead of JSON
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!instructionsResponse.ok) {
-      throw new Error(`Failed to get exam instructions: ${instructionsResponse.status}`);
-    }
-
-    const instructionsData = await instructionsResponse.json();
-    
-    // Render session page
+    // Render combined page
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Honorlock Exam Session</title>
+        <title>Honorlock Exam Setup</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script type="module" src="https://unpkg.com/@honorlock/integration-sdk-js?module"></script>
+        <style>
+          .step {
+            display: none;
+          }
+          .step.active {
+            display: block;
+          }
+        </style>
       </head>
-      <body class="bg-gray-100 min-h-screen">
-        <div class="p-8">
-          <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mb-8">
-            <h1 class="text-2xl font-bold mb-4">Exam Session Setup</h1>
-            <p class="mb-4">Please follow the instructions to start your exam.</p>
-            
-            <div class="mb-6">
-              <h2 class="text-lg font-semibold mb-2">Launch Screen</h2>
-              <iframe src="${instructionsData.data.launch_screen_url}" width="100%" height="400" frameborder="0"></iframe>
+      <body class="bg-gray-100 min-h-screen p-8">
+        <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mb-8">
+          <h1 class="text-2xl font-bold mb-4">Honorlock Exam Setup</h1>
+          
+          <!-- Progress indicator -->
+          <div class="flex mb-6 text-sm">
+            <div class="flex-1 text-center">
+              <div id="step1-indicator" class="inline-block w-8 h-8 rounded-full bg-blue-500 text-white font-bold flex items-center justify-center">1</div>
+              <div class="mt-1">Extension</div>
             </div>
-            
+            <div class="flex-1 text-center">
+              <div id="step2-indicator" class="inline-block w-8 h-8 rounded-full bg-gray-300 text-gray-700 font-bold flex items-center justify-center">2</div>
+              <div class="mt-1">Session</div>
+            </div>
+            <div class="flex-1 text-center">
+              <div id="step3-indicator" class="inline-block w-8 h-8 rounded-full bg-gray-300 text-gray-700 font-bold flex items-center justify-center">3</div>
+              <div class="mt-1">Start</div>
+            </div>
+          </div>
+          
+          <!-- Step 1: Extension Check -->
+          <div id="step1" class="step active">
+            <p class="mb-4">Please install the Honorlock extension to continue.</p>
+            <div class="mb-4">
+              <iframe src="${extensionCheckData.data.iframe_src}" width="100%" height="300" frameborder="0"></iframe>
+            </div>
+            <button 
+              id="continueToSessionBtn"
+              style="display: none;" 
+              class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+              Continue to Session Setup
+            </button>
+          </div>
+          
+          <!-- Step 2: Session Setup -->
+          <div id="step2" class="step">
+            <p class="mb-4">Setting up your exam session...</p>
+            <div id="sessionSetupSpinner" class="flex justify-center my-8">
+              <svg class="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+            <div id="sessionSetupError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
+          </div>
+          
+          <!-- Step 3: Launch Proctoring -->
+          <div id="step3" class="step">
+            <p class="mb-4">Please follow the instructions to start your exam.</p>
+            <div id="launchScreenContainer" class="mb-6">
+              <!-- Launch screen iframe will be inserted here -->
+            </div>
             <button 
               id="setupSessionButton"
               class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-4">
               Setup Exam Session
             </button>
-
             <button 
-              data-hl-extension-start 
+              id="startExamButton"
               style="display: none;" 
-              class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-              id="startExamButton">
+              class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
               Start Exam
             </button>
           </div>
@@ -286,29 +236,95 @@ router.get('/create-session', async (req, res) => {
         <script>
           document.addEventListener('DOMContentLoaded', async () => {
             const honorlock = globalThis.Honorlock || window.Honorlock;
-            const sessionInfo = ${JSON.stringify(sessionData.data)};
             const studentInfo = ${JSON.stringify(studentInfo)};
+            let sessionInfo = null;
+            
+            // Initialize Honorlock
+            try {
+              await honorlock.init();
+              console.log('Honorlock initialized successfully');
+            } catch (error) {
+              console.error('Error initializing Honorlock:', error);
+              showError('Failed to initialize Honorlock: ' + error);
+            }
+            
+            // Step 1: Extension verification
+            honorlock.onExtensionVerified(() => {
+              // Show the continue button when extension is verified
+              document.getElementById('continueToSessionBtn').style.display = 'block';
+            });
+            
+            // Continue to session setup
+            document.getElementById('continueToSessionBtn').addEventListener('click', async () => {
+              goToStep(2);
+              
+              try {
+                // Create session
+                const createSessionResponse = await fetch('/student/create-session-data', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    externalExamId: '${externalExamId}',
+                    accessToken: '${accessToken}',
+                    studentInfo
+                  })
+                });
+                
+                if (!createSessionResponse.ok) {
+                  throw new Error(`Failed to create session: ${createSessionResponse.status}`);
+                }
+                
+                const responseData = await createSessionResponse.json();
+                
+                if (!responseData.success) {
+                  throw new Error(responseData.error || 'Failed to create session');
+                }
+                
+                sessionInfo = responseData.sessionData;
+                
+                // Get exam instructions and load iframe
+                document.getElementById('launchScreenContainer').innerHTML = `
+                  <iframe src="${responseData.instructionsData.launch_screen_url}" width="100%" height="400" frameborder="0"></iframe>
+                `;
+                
+                // Move to step 3
+                goToStep(3);
+              } catch (error) {
+                console.error('Error creating session:', error);
+                document.getElementById('sessionSetupSpinner').style.display = 'none';
+                document.getElementById('sessionSetupError').classList.remove('hidden');
+                document.getElementById('sessionSetupError').textContent = error.message;
+              }
+            });
             
             // Setup session button click handler
-            document.getElementById('setupSessionButton').addEventListener('click', () => {
-              // Setup session
-              honorlock.setupSession({
-                session: sessionInfo,
-                app_url: window.location.origin,
-                external_exam_id: studentInfo.external_exam_id,
-                exam_taker_id: studentInfo.exam_taker_id,
-                exam_taker_name: '${studentInfo.exam_taker_first_name} ${studentInfo.exam_taker_last_name}',
-                exam_taker_attempt_id: studentInfo.exam_taker_attempt_id
-              });
-
-              // Hide setup button after it's been clicked
-              document.getElementById('setupSessionButton').style.display = 'none';
+            document.getElementById('setupSessionButton').addEventListener('click', async () => {
+              try {
+                // Setup session
+                await honorlock.setupSession({
+                  session: sessionInfo,
+                  app_url: window.location.origin,
+                  external_exam_id: studentInfo.external_exam_id,
+                  exam_taker_id: studentInfo.exam_taker_id,
+                  exam_taker_name: `${studentInfo.exam_taker_first_name} ${studentInfo.exam_taker_last_name}`,
+                  exam_taker_attempt_id: studentInfo.exam_taker_attempt_id
+                });
+                
+                console.log('Session setup successful');
+                
+                // Hide setup button after it's been clicked
+                document.getElementById('setupSessionButton').style.display = 'none';
+              } catch (error) {
+                console.error('Session setup error:', error);
+                alert('Failed to setup session: ' + error);
+              }
             });
             
             // Register callback for when exam can begin
             honorlock.onBeginExam(() => {
-              let startButton = document.querySelector('[data-hl-extension-start]');
-              startButton.style.display = 'block';
+              document.getElementById('startExamButton').style.display = 'block';
             });
             
             // Handle start exam button click
@@ -348,7 +364,7 @@ router.get('/create-session', async (req, res) => {
                   const startData = await startResponse.json();
                   
                   if (startData.success) {
-                    // Redirect to exam page (in a real app, this would go to your exam platform)
+                    // Redirect to exam page
                     window.location.href = '/student/exam?externalExamId=${externalExamId}&studentId=' + 
                       studentInfo.exam_taker_id + '&attemptId=' + studentInfo.exam_taker_attempt_id;
                   } else {
@@ -362,6 +378,45 @@ router.get('/create-session', async (req, res) => {
                 alert('An error occurred: ' + error.message);
               }
             });
+            
+            // Helper functions
+            function goToStep(stepNumber) {
+              // Hide all steps
+              document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+              });
+              
+              // Show current step
+              document.getElementById(`step${stepNumber}`).classList.add('active');
+              
+              // Update indicators
+              for (let i = 1; i <= 3; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                if (i < stepNumber) {
+                  // Completed step
+                  indicator.classList.remove('bg-gray-300', 'bg-blue-500');
+                  indicator.classList.add('bg-green-500');
+                } else if (i === stepNumber) {
+                  // Current step
+                  indicator.classList.remove('bg-gray-300', 'bg-green-500');
+                  indicator.classList.add('bg-blue-500');
+                } else {
+                  // Future step
+                  indicator.classList.remove('bg-blue-500', 'bg-green-500');
+                  indicator.classList.add('bg-gray-300');
+                }
+              }
+            }
+            
+            function showError(message) {
+              const errorDiv = document.createElement('div');
+              errorDiv.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4';
+              errorDiv.textContent = message;
+              
+              // Insert at the top of the container
+              const container = document.querySelector('.max-w-md');
+              container.insertBefore(errorDiv, container.firstChild);
+            }
           });
         </script>
       </body>
@@ -370,6 +425,70 @@ router.get('/create-session', async (req, res) => {
   } catch (error) {
     console.error('Error:', error);
     res.status(500).send(`Error: ${error.message}`);
+  }
+});
+
+// Create session data endpoint (for AJAX call)
+router.post('/create-session-data', async (req, res) => {
+  try {
+    const { externalExamId, accessToken, studentInfo } = req.body;
+    
+    if (!externalExamId || !accessToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'Access token and external exam ID are required'
+      });
+    }
+    
+    // Create session
+    const createSessionResponse = await fetch('https://app.honorlock.com/api/en/v1/exams/sessions/create', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json', // Without Accept application/json, errors from Honorlock API will return 302 redirect instead of JSON
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(studentInfo),
+    });
+
+    if (!createSessionResponse.ok) {
+      return res.status(createSessionResponse.status).json({
+        success: false,
+        error: `Failed to create session: ${createSessionResponse.status}`
+      });
+    }
+
+    const sessionData = await createSessionResponse.json();
+
+    // Get exam instructions
+    const instructionsResponse = await fetch(`https://app.honorlock.com/api/en/v1/exams/${externalExamId}/instructions`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json', // Without Accept application/json, errors from Honorlock API will return 302 redirect instead of JSON
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!instructionsResponse.ok) {
+      return res.status(instructionsResponse.status).json({
+        success: false,
+        error: `Failed to get exam instructions: ${instructionsResponse.status}`
+      });
+    }
+
+    const instructionsData = await instructionsResponse.json();
+    
+    res.json({
+      success: true,
+      sessionData: sessionData.data,
+      instructionsData: instructionsData.data
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
 });
 
