@@ -12,42 +12,36 @@
     <ul class="space-y-2">
       <% exams.forEach(exam => { %>
         <li>
+          <%
+            // Common exam info content
+            const examInfoContent = `
+              <div class="text-sm text-gray-600">
+                ${exam.is_scheduled 
+                  ? `Scheduled: ${new Date(exam.exam_start).toLocaleString()} - ${new Date(exam.exam_end).toLocaleString()}`
+                  : 'Not scheduled'
+                }
+              </div>
+              <div class="text-sm text-gray-600">Platform: ${exam.third_party_platform_name || ''}</div>
+              <div class="text-sm text-gray-600">
+                LMS URL: ${exam.lms_exam_url || ''}
+              </div>
+              ${exam.third_party_platform_name 
+                ? '<div class="mt-1 text-red-500 text-xs">This is a Third Party Assessment and will fail when trying to authenticate in the next step</div>'
+                : ''
+              }
+            `;
+          %>
+          
           <% if (exam.external_id) { %>
             <a href="/student/exam-setup?externalExamId=<%= exam.external_id %>&token=<%= encodeURIComponent(accessToken) %>" 
                class="block p-3 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200">
               <%= exam.name %>
-              <div class="text-sm text-gray-600">
-                <% if (exam.is_scheduled) { %>
-                  Scheduled: <%= new Date(exam.exam_start).toLocaleString() %> - <%= new Date(exam.exam_end).toLocaleString() %>
-                <% } else { %>
-                  Not scheduled
-                <% } %>
-              </div>
-              <div class="text-sm text-gray-600">Platform: <%= exam.third_party_platform_name || '' %></div>
-              <div class="text-sm text-gray-600">
-                LMS URL: <%= exam.lms_exam_url || '' %>
-              </div>
-              <% if (exam.third_party_platform_name) { %>
-                <div class="mt-1 text-red-500 text-xs">This is a Third Party Assessment and will fail when trying to authenticate in the next step</div>
-              <% } %>
+              <%- examInfoContent %>
             </a>
           <% } else { %>
             <div class="block p-3 bg-gray-100 rounded border border-gray-200">
               <%= exam.name %>
-              <div class="text-sm text-gray-600">
-                <% if (exam.is_scheduled) { %>
-                  Scheduled: <%= new Date(exam.exam_start).toLocaleString() %> - <%= new Date(exam.exam_end).toLocaleString() %>
-                <% } else { %>
-                  Not scheduled
-                <% } %>
-              </div>
-              <div class="text-sm text-gray-600">Platform: <%= exam.third_party_platform_name || '' %></div>
-              <div class="text-sm text-gray-600">
-                LMS URL: <%= exam.lms_exam_url || '' %>
-              </div>
-              <% if (exam.third_party_platform_name) { %>
-                <div class="mt-1 text-red-500 text-xs">This is a Third Party Assessment and will fail when trying to authenticate in the next step</div>
-              <% } %>
+              <%- examInfoContent %>
               <div class="mt-1 text-red-500 text-xs">Cannot proceed: external_id is missing</div>
             </div>
           <% } %>
