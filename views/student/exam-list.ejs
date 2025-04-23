@@ -27,6 +27,9 @@
               <div class="text-sm text-gray-600">
                 LMS URL: <%= exam.lms_exam_url || '' %>
               </div>
+              <% if (exam.third_party_platform_name) { %>
+                <div class="mt-1 text-red-500 text-xs">This is a Third Party Assessment and will fail when trying to authenticate in the next step</div>
+              <% } %>
             </a>
           <% } else { %>
             <div class="block p-3 bg-gray-100 rounded border border-gray-200">
@@ -42,6 +45,9 @@
               <div class="text-sm text-gray-600">
                 LMS URL: <%= exam.lms_exam_url || '' %>
               </div>
+              <% if (exam.third_party_platform_name) { %>
+                <div class="mt-1 text-red-500 text-xs">This is a Third Party Assessment and will fail when trying to authenticate in the next step</div>
+              <% } %>
               <div class="mt-1 text-red-500 text-xs">Cannot proceed: external_id is missing</div>
             </div>
           <% } %>
